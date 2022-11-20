@@ -58,7 +58,7 @@ jobs:
 
       - name: Build
         run: |
-          go build -o ai.${{ matrix.GOOS }}-${{ matrix.GOARCH }} ./...
+          GOOS=${{ matrix.GOOS }} GOARCH=${{ matrix.GOARCH }} go build -o ai.${{ matrix.GOOS }}-${{ matrix.GOARCH }} ./...
       
       - name: Upload artifact
         uses: actions/upload-artifact@v2
