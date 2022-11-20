@@ -136,11 +136,21 @@ func answer(resp *CreateCompletionResponse) {
 		color.Blue("Sorry, Can't answer that.")
 		return
 	default:
+		// catch index out of range error
+		defer func() {
+			if r := recover(); r != nil {
+				color.Blue(resp.Choices[0].Text)
+				color.Red("Something wasn't quite right with the reply, try again.")
+			}
+		}()
+
 		// regex to get answer from response /`(.*?)`/
 		re := regexp.MustCompile("`(.*)`")
 		answer := re.FindStringSubmatch(resp.Choices[0].Text)
 		d := color.New(color.FgCyan, color.Bold)
+
 		d.Println(answer[1])
+
 		// offer to run the returned answer as a command
 		reader := bufio.NewReader(os.Stdin)
 		color.Yellow("\nRun this command? (y/n): ")
