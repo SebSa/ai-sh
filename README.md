@@ -1,6 +1,8 @@
 # AI Shell
 
-This is a simple golang binary which allow one to use GPT-3 to generate shell commands via natural language prompts.
+This is a simple golang project which allows one to use GPT-3 to generate shell commands via natural language prompts and then execute them while in a shell.
+
+Obviously this is quite unpredictable, but it can be save time at the shell and it's faster than googling for the command you want to run in most cases.
 
 ## Usage
 
@@ -16,9 +18,19 @@ Then you can go to the [OpenAI Api Keys](https://beta.openai.com/account/api-key
 
 Then, you can use the `ai ask` command to generate shell commands:
 
-```bash
-ai ask "ls -l"
-```
+    ```bash
+    ai ask "List all files in current directory and subdirectories, print total average of their size in Mb"
+    ```
+
+Returns:
+    
+    ```bash
+    find . -type f -exec du -sh {} + | awk '{ total += $1; count++ } END { print total/count/1024 }'
+
+    Run this command? (y/n): 
+    y
+    0.00406703
+    ```
 
 ## Installation
 
@@ -30,6 +42,3 @@ On linux you can do this with:
 mv ai-linux-amd64 /usr/local/bin/ai
 chmod +x /usr/local/bin/ai
 ```
-
-```
-
