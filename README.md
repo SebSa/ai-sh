@@ -6,31 +6,37 @@ Obviously this is quite unpredictable, but it can be save time at the shell and 
 
 ## Usage
 
-Authenticate with OpenAI inputting your API key:
+Pre-requisites:
 
-```bash
-ai auth <api-key>
-```
+-   [GPT-3 API key](https://beta.openai.com/)
 
 To obtain an API key, you need to create an account on [OpenAI](https://beta.openai.com/).
 
 Then you can go to the [OpenAI Api Keys](https://beta.openai.com/account/api-keys) page and create a new API key.
 
-Then, you can use the `ai ask` command to generate shell commands:
+Once you have the API key, you can run the following command and the program will save the key for later use:
 
-    ```bash
-    ai ask "List all files in current directory and subdirectories, print total average of their size in Mb"
-    ```
+```bash
+ai auth <api-key>
+```
 
-Returns:
+Then, you can use the `ai ask` command to generate shell commands.
+
+For example:
+
+```bash
+ai ask "List all files in current directory and subdirectories, print total average of their size in Mb"
+```
+
+Returned output:
     
-    ```bash
-    find . -type f -exec du -sh {} + | awk '{ total += $1; count++ } END { print total/count/1024 }'
+```bash
+find . -type f -exec du -sh {} + | awk '{ total += $1; count++ } END { print total/count/1024 }'
 
-    Run this command? (y/n): 
-    y
-    0.00406703
-    ```
+Run this command? (y/n): 
+y
+0.00406703
+```
 
 ## Installation
 
