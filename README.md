@@ -22,4 +22,13 @@ ai ask "ls -l"
 
 ## Installation
 
-Download latest release from releases page and save it in a directory in your PATH.
+Download latest release from releases page, rename it "ai" or what ever else you want and save it in a directory in your PATH.
+
+On linux you can do this with:
+
+```bash
+
+mv ai-linux-amd64 /usr/local/bin/ai
+
+```
+
