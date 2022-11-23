@@ -6,7 +6,6 @@ package main
 // usage: ai ask [question], ai auth [api-key]
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"log"
@@ -18,7 +17,9 @@ import (
 	"time"
 
 	"github.com/briandowns/spinner"
+	"github.com/d-tsuji/clipboard"
 	color "github.com/fatih/color"
+	"github.com/manifoldco/promptui"
 )
 
 func main() {
@@ -31,7 +32,20 @@ func main() {
 	case "ask":
 		// ask question and send and answer to answer()
 		resp := ask()
-		answer(resp)
+		a := answer(resp)
+		// if answer is empty, ask again
+		if a == "" {
+			color.Red("No answer found, try again")
+			main()
+		}
+		// if answer contains sorry, ask again
+		if strings.Contains(a, "Sorry, Can't answer that.") {
+			color.Red("No answer found, try again")
+			main()
+		}
+		// present answer to user with selector()
+		selector(a)
+
 	case "auth":
 		auth()
 	default:
@@ -62,7 +76,6 @@ func auth() {
 	color.Green("api key saved")
 	// print location of file
 	color.White("api key location: " + os.TempDir() + "/openai-api-key")
-
 }
 
 // ask sends a request to openAI api and returns the response
@@ -75,7 +88,8 @@ func ask() *CreateCompletionResponse {
 	// get api key from temp file
 	file, err := os.Open(os.TempDir() + "openai-api-key")
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("api key not found, run ai auth [api-key]")
+		os.Exit(1)
 	}
 	defer file.Close()
 
@@ -105,7 +119,7 @@ func ask() *CreateCompletionResponse {
 
 	// make request
 	ctx := context.Background()
-	s := spinner.New(spinner.CharSets[40], 100*time.Millisecond)
+	s := spinner.New(spinner.CharSets[69], 100*time.Millisecond)
 	s.Color("blue", "fgHiWhite")
 	s.Suffix = "  🤔  Thinking..."
 	s.Start()
@@ -118,54 +132,84 @@ func ask() *CreateCompletionResponse {
 }
 
 // Answer processes the answer returned by ask()
-func answer(resp *CreateCompletionResponse) {
+func answer(resp *CreateCompletionResponse) string {
+
+	// catch index out of range error
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Error:", r)
+		}
+	}()
+
 	// get answer from response
 	answer := resp.Choices[0].Text
 	// remove newlines and A - from answer
 	answer = strings.ReplaceAll(answer, "A - ", "")
 	answer = strings.ReplaceAll(answer, "\n", "")
+
 	// switch on answer
 	switch {
 	// if answer contains sorry, print it
 	case strings.Contains(answer, "Sorry, Can't answer that."):
-		// print in blue
-		color.Blue(answer)
-		return
+		return answer
+
 	// if answer contains nothing
 	case answer == "":
-		color.Blue("Sorry, Can't answer that.")
-		return
-	default:
-		// catch index out of range error
-		defer func() {
-			if r := recover(); r != nil {
-				color.Blue(resp.Choices[0].Text)
-				color.Red("Something wasn't quite right with the reply, try again.")
-			}
-		}()
+		return answer
 
+	default:
 		// regex to get answer from response /`(.*?)`/
 		re := regexp.MustCompile("`(.*)`")
 		answer := re.FindStringSubmatch(resp.Choices[0].Text)
-		d := color.New(color.FgCyan, color.Bold)
 
-		d.Println(answer[1])
+		a := answer[1]
 
-		// offer to run the returned answer as a command
-		reader := bufio.NewReader(os.Stdin)
-		color.Yellow("\nRun this command? (y/n): ")
-		text, _ := reader.ReadString('\n')
-		text = strings.TrimSuffix(text, "\n")
-		if text == "y" {
-			cmd := exec.Command("bash", "-c", answer[1])
-			cmd.Stdout = os.Stdout
-			cmd.Stderr = os.Stderr
-			cmd.Run()
-		} else {
-			exit := exec.Command("bash", "-c", "exit")
-			exit.Stdout = os.Stdout
-			exit.Stderr = os.Stderr
-			exit.Run()
+		return a
+		// print in green
+	}
+}
+
+// Selector presents the user with a list of options to choose from
+func selector(a string) {
+	color.Green("Answer:\t'%s'", a)
+	// promptui selector to present option to copy to clipboard or run command in terminal
+	prompt := promptui.Select{
+		Label: "Select an option",
+		Items: []string{"Copy to clipboard", "Run in terminal", "Try again", "Exit"},
+	}
+
+	// get user selection
+	_, result, err := prompt.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// switch on user selection
+	switch result {
+	case "Copy to clipboard":
+		// copy answer to clipboard with clipboard package
+		if err := clipboard.Set(a); err != nil {
+			log.Fatal(err)
 		}
+
+	case "Run in terminal":
+		// run answer in terminal
+		cmd := exec.Command("bash", "-c", a)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		cmd.Stdin = os.Stdin
+		err := cmd.Run()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+	case "Try again":
+		// go back to main
+		main()
+
+	case "Exit":
+		// exit program
+		os.Exit(0)
+
 	}
 }
