@@ -17,7 +17,6 @@ import (
 	"time"
 
 	"github.com/briandowns/spinner"
-	"github.com/d-tsuji/clipboard"
 	color "github.com/fatih/color"
 	"github.com/manifoldco/promptui"
 )
@@ -175,7 +174,7 @@ func selector(a string) {
 	// promptui selector to present option to copy to clipboard or run command in terminal
 	prompt := promptui.Select{
 		Label: "Select an option",
-		Items: []string{"Copy to clipboard", "Run in terminal", "Try again", "Exit"},
+		Items: []string{"Run in terminal", "Try again", "Exit"},
 	}
 
 	// get user selection
@@ -186,11 +185,6 @@ func selector(a string) {
 
 	// switch on user selection
 	switch result {
-	case "Copy to clipboard":
-		// copy answer to clipboard with clipboard package
-		if err := clipboard.Set(a); err != nil {
-			log.Fatal(err)
-		}
 
 	case "Run in terminal":
 		// run answer in terminal
