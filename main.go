@@ -85,7 +85,7 @@ func ask() *CreateCompletionResponse {
 	}
 
 	// get api key from temp file
-	file, err := os.Open(os.TempDir() + "openai-api-key")
+	file, err := os.Open(os.TempDir() + "/openai-api-key")
 	if err != nil {
 		fmt.Println("api key not found, run ai auth [api-key]")
 		os.Exit(1)
