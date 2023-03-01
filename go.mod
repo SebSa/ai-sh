@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20221118232415-3345c89a7c72
-	github.com/briandowns/spinner v1.21.0
+	github.com/briandowns/spinner v1.22.0
 	github.com/fatih/color v1.14.1
 	github.com/manifoldco/promptui v0.9.0
 )
